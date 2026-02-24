@@ -1,5 +1,6 @@
 USE olist_ecommerce;
-
+SHOW VARIABLES LIKE 'local_infile';
+SET GLOBAL local_infile = 1;
 CREATE TABLE customers (
     customer_id VARCHAR(50) NOT NULL PRIMARY KEY,
     customer_unique_id VARCHAR(50),
@@ -118,3 +119,66 @@ CREATE TABLE order_reviews (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+/* Load data into tables */
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_customers_dataset.csv'
+INTO TABLE customers
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_sellers_dataset.csv'
+INTO TABLE sellers
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_geolocation_dataset.csv'
+INTO TABLE geolocation
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/product_category_name_translation.csv'
+INTO TABLE category_name_translation
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_products_dataset.csv'
+INTO TABLE products
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_orders_dataset.csv'
+INTO TABLE orders
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_order_items_dataset.csv'
+INTO TABLE order_items
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_order_payments_dataset.csv'
+INTO TABLE order_payments
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA LOCAL INFILE 'C:/Users/hamoud/Documents/OLIST-Brazilian_E-Commerce/DATA/Raw_Data/olist_order_reviews_dataset.csv'
+INTO TABLE order_reviews
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;

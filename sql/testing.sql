@@ -21,6 +21,20 @@ GROUP BY month
 ORDER BY month ASC;
 
 /*growth percentage month over month*/
-
-
-
+WITH monthly_revenue AS(
+SELECT DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS y_month, 
+       SUM(oi.price + oi.freight_value) AS total_revenue
+FROM orders AS o
+INNER JOIN order_items AS oi
+ON o.order_id = oi.order_id
+WHERE o.order_status = "delivered"
+GROUP BY y_month
+)
+SELECT y_month,
+       LAG(total_revenue,1) OVER (ORDER BY y_month) AS last_month_revenue,
+       total_revenue,
+       total_revenue - LAG(total_revenue,1) OVER(ORDER BY y_month) AS monthly_revenue_differance,
+       ROUND((total_revenue - LAG(total_revenue,1) OVER(ORDER BY y_month))/ NULLIF(LAG(total_revenue) OVER (ORDER BY y_month), 0)
+       * 100, 2) AS growth_percentage
+FROM monthly_revenue
+ORDER BY y_month ASC;

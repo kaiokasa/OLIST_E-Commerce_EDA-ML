@@ -20,7 +20,7 @@ WHERE order_status = "delivered"
 GROUP BY month
 ORDER BY month ASC;
 
-/*growth percentage month over month*/
+/*growth percentage month over month for delivered products only*/
 WITH monthly_revenue AS(
 SELECT DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS y_month, 
        SUM(oi.price + oi.freight_value) AS total_revenue

@@ -117,7 +117,8 @@ WITH customer_orders AS(
     GROUP BY DATE_FORMAT(order_purchase_timestamp, '%Y-%m'), customer_id
 )
 SELECT 
-    y_month,
+    y_month, 
+    MAX(total_orders) AS max_orders_in_month,
     COUNT(CASE WHEN total_orders > 1 Then 1 END) AS repeat_customers,
     COUNT(*) AS total_customers,
     ROUND(COUNT(CASE WHEN total_orders > 1 Then 1 END)/COUNT(*) * 100, 2) AS repeat_purchase_rate

@@ -109,3 +109,35 @@ LIMIT 1;
 
 /*II/*/
 /*Customer Analytics*/
+/*Monthly repeated purchase rate from same customer*/
+WITH customer_orders AS(
+    SELECT DATE_FORMAT(order_purchase_timestamp, '%Y-%m') AS y_month, customer_id, COUNT(order_id) AS total_orders
+    FROM orders
+    WHERE order_status = 'delivered'
+    GROUP BY DATE_FORMAT(order_purchase_timestamp, '%Y-%m'), customer_id
+)
+SELECT 
+    y_month,
+    COUNT(CASE WHEN total_orders > 1 Then 1 END) AS repeat_customers,
+    COUNT(*) AS total_customers,
+    ROUND(COUNT(CASE WHEN total_orders > 1 Then 1 END)/COUNT(*) * 100, 2) AS repeat_purchase_rate
+FROM customer_orders
+GROUP BY y_month
+ORDER BY y_month ASC;
+
+/*All time repeated purchase rate from same customer*/
+WITH customer_orders AS (
+    SELECT 
+        customer_id, 
+        COUNT(order_id) AS total_orders
+    FROM orders
+    WHERE order_status = 'delivered'
+    GROUP BY customer_id
+)
+SELECT
+    COUNT(CASE WHEN total_orders > 1 THEN 1 END) AS repeat_customers,
+    COUNT(*) AS total_customers,
+    ROUND(COUNT(CASE WHEN total_orders > 1 THEN 1 END) * 100.0 / COUNT(*), 2) AS repeat_purchase_rate
+FROM customer_orders;
+
+/* This dataset doe not contain repeated customers, as each customer has only one order. Therefore, the repeat purchase rate is 0% for both monthly and all time repeat_purchase_rate.*/

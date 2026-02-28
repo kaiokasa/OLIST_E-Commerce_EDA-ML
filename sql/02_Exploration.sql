@@ -141,3 +141,103 @@ SELECT
 FROM customer_orders;
 
 /* This dataset doe not contain repeated customers, as each customer has only one order. Therefore, the repeat purchase rate is 0% for both monthly and all time repeat_purchase_rate.*/
+/*Number of customers using a monthly*/
+WITH first_order AS (
+    SELECT customer_id, MIN(order_purchase_timestamp) AS first_purchase
+    FROM orders
+    WHERE order_status = 'delivered'
+    GROUP BY customer_id
+)
+SELECT 
+    DATE_FORMAT(f.first_purchase, '%Y-%m') AS cohort_month,
+    COUNT(DISTINCT o.customer_id) AS active_customers
+FROM first_order f
+JOIN orders o
+    ON f.customer_id = o.customer_id
+WHERE o.order_status = 'delivered'
+GROUP BY cohort_month
+ORDER BY cohort_month;
+
+
+
+
+WITH first_purchase AS (
+    SELECT 
+        customer_id, 
+        DATE_FORMAT(MIN(order_purchase_timestamp), '%Y-%m') AS cohort_month
+    FROM orders
+    WHERE order_status = 'delivered'
+    GROUP BY customer_id
+), customer_activity AS (
+    SELECT 
+        o.customer_id,
+        DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS purchase_month
+    FROM orders o
+    WHERE o.order_status = 'delivered'
+), cohort_activity AS (
+    SELECT 
+        f.customer_id,
+        f.cohort_month,
+        c.purchase_month,
+        TIMESTAMPDIFF(MONTH, STR_TO_DATE(f.cohort_month, '%Y-%m'), STR_TO_DATE(c.purchase_month, '%Y-%m')) AS months_since_first
+    FROM first_purchase f
+    JOIN customer_activity c
+        ON f.customer_id = c.customer_id
+)
+SELECT 
+    cohort_month,
+    months_since_first,
+    COUNT(DISTINCT customer_id) AS active_customers
+FROM cohort_activity
+GROUP BY cohort_month, months_since_first
+ORDER BY cohort_month, months_since_first;
+/*months since first is full of NULL cause there is no customer that purchased in a later month than their first purchase*/
+/*RFM Analysis*/
+/*Here we calculate the number of items bought(frequency) and total money earned(monetary) from the last purchase date of each customer*/
+WITH customer_rfm AS (
+    SELECT 
+        o.customer_id,
+        MAX(o.order_purchase_timestamp) AS last_purchase_date,
+        COUNT(o.order_id) AS frequency,
+        SUM(oi.price + oi.freight_value) AS monetary
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    
+    WHERE o.order_status = 'delivered'
+    GROUP BY o.customer_id
+)
+SELECT * FROM customer_rfm
+ORDER BY monetary DESC
+LIMIT 10;
+
+
+SELECT 
+    o.customer_id AS customer_id,
+    DATEDIFF('2018-09-24', MAX(o.order_purchase_timestamp)) AS recency_days,
+    COUNT(DISTINCT o.order_id) AS frequency,  -- <--- correct way
+    SUM(oi.price + oi.freight_value) AS monetary,
+    SUM(SUM(oi.price + oi.freight_value)) OVER() AS monetary_total
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+WHERE o.order_status = 'delivered'
+GROUP BY o.customer_id
+LIMIT 8000000;
+
+WITH rfm AS (
+    SELECT 
+        o.customer_id,
+        DATEDIFF('2018-09-24', MAX(o.order_purchase_timestamp)) AS recency,
+        COUNT(o.order_id) AS frequency,
+        SUM(oi.price + oi.freight_value) AS monetary
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    WHERE o.order_status = 'delivered'
+    GROUP BY o.customer_id
+)
+SELECT
+    customer_id,
+    NTILE(5) OVER (ORDER BY recency ASC) AS r_score,
+    NTILE(5) OVER (ORDER BY frequency DESC) AS f_score,
+    NTILE(5) OVER (ORDER BY monetary DESC) AS m_score
+FROM rfm
+ORDER BY r_score DESC, f_score DESC, m_score DESC;

@@ -7,7 +7,7 @@
 
 **II/ Customer Analytics:**
 
-* *Monthly Repeat purchase rate*
+* *Monthly and All time Repeat purchase rate*
 * *Cohort analysis*
 * *RFM segmentation (Recency, Frequency, Monetary)*
 

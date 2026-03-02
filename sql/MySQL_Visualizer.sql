@@ -96,3 +96,28 @@ FROM growth_calc
 ORDER BY growth_percentage DESC
 LIMIT 1;
 
+WITH customer_orders AS (
+    SELECT 
+        DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m') AS y_month,
+        c.customer_unique_id,
+        COUNT(DISTINCT o.order_id) AS total_orders
+    FROM orders o
+    JOIN customers c 
+        ON o.customer_id = c.customer_id
+    WHERE o.order_status = 'delivered'
+    GROUP BY 
+        DATE_FORMAT(o.order_purchase_timestamp, '%Y-%m'),
+        c.customer_unique_id
+)
+SELECT
+    y_month,
+    COUNT(CASE WHEN total_orders > 1 THEN 1 END) AS repeat_customers,
+    COUNT(*) AS total_customers,
+    ROUND(
+        COUNT(CASE WHEN total_orders > 1 THEN 1 END) 
+        / COUNT(*) * 100, 
+        2
+    ) AS repeat_purchase_rate
+FROM customer_orders
+GROUP BY y_month
+ORDER BY y_month;
